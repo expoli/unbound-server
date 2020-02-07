@@ -17,6 +17,7 @@ readonly PATH_BIN_UNBOUND_CKECKCONF='/usr/sbin/unbound-checkconf'
 readonly PATH_BIN_USERADD='/usr/sbin/useradd'
 readonly PATH_BIN_DIG='/usr/bin/dig'
 readonly PATH_BIN_NETSTAT='/bin/netstat'
+readonly PATH_BIN_IFCONFIG='/sbin/ifconfig'
 
 readonly PATH_FILE_ETC_UNBOUND_UNBOUND_CONF='/etc/unbound/unbound.conf'
 readonly PATH_FILE_ETC_UNBOUND_ROOT_HISTS='/etc/unbound/root.hints'
@@ -259,6 +260,11 @@ print_unbound_conf(){
     cat $PATH_FILE_ETC_UNBOUND_UNBOUND_CONF
 }
 
+print_containerd_ip_info(){
+    log_header 'containerd ip info'
+    $PATH_BIN_IFCONFIG
+}
+
 ######################################################################################
 ### main routines
 ######################################################################################
@@ -272,7 +278,13 @@ init() {
     init_unbound_threads
     init_trap
     log 'setup complete'
+}
+
+containerd_status(){
+    log_header 'containerd info'
     print_unbound_conf
+    print_unbound_status
+    print_containerd_ip_info
 }
 
 hangout() {
@@ -290,7 +302,7 @@ main() {
     init
     unbound_checkconf
     boot
-    print_unbound_status
+    containerd_status
     hangout
 }
 

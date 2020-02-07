@@ -1,7 +1,6 @@
 FROM ubuntu:latest
 
-RUN sed -i "s/archive.ubuntu.com/mirrors.aliyun.com/g" /etc/apt/sources.list\
-    && apt-get update\
+RUN apt-get update\
     && apt-get install -y \
     libevent-dev\
     libsodium-dev\
@@ -36,8 +35,8 @@ WORKDIR /
 
 VOLUME [ "/etc/unbound/ssl/" ]
 
-EXPOSE 853
+EXPOSE 853/tcp 853/udp
 # This command runs your application, comment out this line to compile only
-CMD ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
 
-LABEL Name=unbound Version=1.0.0
+CMD [ "netstate", "-ntlp" ]
