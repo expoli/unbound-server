@@ -24,7 +24,7 @@ RUN tar zxf /opt/release-1.9.6.tar.gz \
     && mv -v /usr/sbin/unbound-host /usr/bin/\
     && cd /\
     && rm unbound-release-1.9.6 -rf\
-    && adduser unbound --disable-password
+    && adduser unbound -D
 
 COPY ./unbound.conf /etc/unbound/unbound.conf
 COPY ./entrypoint.sh /entrypoint.sh
