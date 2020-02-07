@@ -1,20 +1,19 @@
-FROM ubuntu:latest
+FROM alpine:latest
 
-RUN apt-get update\
-    && apt-get install -y \
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories\
+    && apk --no-cache add \
     libevent-dev\
     libsodium-dev\
-    libsystemd-dev\
-    libsystemd-dev\
-    libssl-dev\
-    libexpat-dev\
+    libressl-dev\
+    expat-dev\
+    libc-dev\
     gcc\
     make\
     wget\
-    libcap2-bin\
-    dnsutils\
+    libcap\
+    bind-tools\
     net-tools\
-    && apt-get clean
+    bash
 
 COPY ./release-1.9.6.tar.gz /opt
 RUN tar zxf /opt/release-1.9.6.tar.gz \
