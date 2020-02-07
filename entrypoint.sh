@@ -274,7 +274,7 @@ init() {
     init_runtime_assertions
     init_unbound_conf_file
     init_root_hints_file
-    init_unbound_user
+    # init_unbound_user
     init_unbound_threads
     init_trap
     log 'setup complete'
