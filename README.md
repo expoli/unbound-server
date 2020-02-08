@@ -35,8 +35,56 @@ unbound docker sever
 docker run --rm -e DNS_DOMAIN_NAME="your_dns_domain" \
     -v ${PWD}/ssl:/etc/unbound/ssl \
     --privileged \
-    -p 853:853/tcp -p 853:853/udp  \
+    --network=host   \
     tangcuyu/unbound-server
+```
+
+### 解析测试
+
+在终端键入以下命令并运行。
+
+```shell
+dig github.com @127.0.0.1 -p 853
+
+; <<>> DiG 9.14.10 <<>> github.com @127.0.0.1 -p 853
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 40410
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;github.com.                    IN      A
+
+;; ANSWER SECTION:
+github.com.             12      IN      A       13.229.188.59
+
+;; Query time: 1267 msec
+;; SERVER: 127.0.0.1#853(127.0.0.1)
+;; WHEN: 六 2月 08 20:36:29 CST 2020
+;; MSG SIZE  rcvd: 55
+
+dig google.com @127.0.0.1 -p 853
+
+; <<>> DiG 9.14.10 <<>> google.com @127.0.0.1 -p 853
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 48185
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;google.com.                    IN      A
+
+;; ANSWER SECTION:
+google.com.             75      IN      A       172.217.160.110
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#853(127.0.0.1)
+;; WHEN: 六 2月 08 20:44:54 CST 2020
+;; MSG SIZE  rcvd: 55
 ```
 
 ## `Dockerfile`
