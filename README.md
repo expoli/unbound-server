@@ -105,7 +105,8 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     libcap\
     bind-tools\
     net-tools\
-    bash
+    bash\
+    file
 
 COPY ./release-1.9.6.tar.gz /opt
 RUN tar zxf /opt/release-1.9.6.tar.gz \

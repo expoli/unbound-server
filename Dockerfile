@@ -12,7 +12,8 @@ RUN apk --no-cache add \
     libcap\
     bind-tools\
     net-tools\
-    bash
+    bash\
+    file
 
 COPY ./release-1.9.6.tar.gz /opt
 RUN tar zxf /opt/release-1.9.6.tar.gz \
