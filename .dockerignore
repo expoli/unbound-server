@@ -1,2 +1,4 @@
 *
 !entrypoint.sh
+!release-1.9.6.tar.gz
+!/unbound.conf
