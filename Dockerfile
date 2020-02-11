@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && apk --no-cache add \
+RUN apk --no-cache add \
     unbound \
     openssl\
     wget\
