@@ -5,6 +5,7 @@ RUN apk --no-cache add \
     openssl\
     wget\
     bash\
+    bind-tools\
     && touch /var/log/unbound.log\
     && chown unbound:unbound /var/log/unbound.log
 
