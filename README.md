@@ -35,40 +35,70 @@ unbound docker sever
 docker run --rm -e DNS_DOMAIN_NAME="your_dns_domain" \
     -v ${PWD}/ssl:/etc/unbound/ssl \
     --privileged \
-    -p 853:853/tcp -p 853:853/udp  \
+    --network=host   \
     tangcuyu/unbound-server
+```
+
+### 解析测试
+
+在终端键入以下命令并运行。
+
+```shell
+dig github.com @127.0.0.1 -p 853
+
+; <<>> DiG 9.14.10 <<>> github.com @127.0.0.1 -p 853
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 40410
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;github.com.                    IN      A
+
+;; ANSWER SECTION:
+github.com.             12      IN      A       13.229.188.59
+
+;; Query time: 1267 msec
+;; SERVER: 127.0.0.1#853(127.0.0.1)
+;; WHEN: 六 2月 08 20:36:29 CST 2020
+;; MSG SIZE  rcvd: 55
+
+dig google.com @127.0.0.1 -p 853
+
+; <<>> DiG 9.14.10 <<>> google.com @127.0.0.1 -p 853
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 48185
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;google.com.                    IN      A
+
+;; ANSWER SECTION:
+google.com.             75      IN      A       172.217.160.110
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#853(127.0.0.1)
+;; WHEN: 六 2月 08 20:44:54 CST 2020
+;; MSG SIZE  rcvd: 55
 ```
 
 ## `Dockerfile`
 
 ```Dockerfile
-FROM ubuntu:latest
+FROM alpine:latest
 
-RUN apt-get update\
-    && apt-get install -y \
-    libevent-dev\
-    libsodium-dev\
-    libsystemd-dev\
-    libsystemd-dev\
-    libssl-dev\
-    libexpat-dev\
-    gcc\
-    make\
+RUN apk --no-cache add \
+    unbound \
+    openssl\
     wget\
-    libcap2-bin\
-    dnsutils\
-    net-tools\
-    && apt-get clean
-
-COPY ./release-1.9.6.tar.gz /opt
-RUN tar zxf /opt/release-1.9.6.tar.gz \
-    && cd unbound-release-1.9.6\
-    &&  ./configure --prefix=/usr   --sysconfdir=/etc  --disable-static   --with-pidfile=/run/unbound.pid  --enable-debug    --enable-cachedb     --enable-dnscrypt --with-libevent\
-    && make\
-    && make install\
-    && mv -v /usr/sbin/unbound-host /usr/bin/\
-    && cd /\
-    && rm unbound-release-1.9.6 -rf
+    bash\
+    && touch /var/log/unbound.log\
+    && chown unbound:unbound /var/log/unbound.log
 
 COPY ./unbound.conf /etc/unbound/unbound.conf
 COPY ./entrypoint.sh /entrypoint.sh
@@ -81,9 +111,7 @@ VOLUME [ "/etc/unbound/ssl/" ]
 
 EXPOSE 853/tcp 853/udp
 # This command runs your application, comment out this line to compile only
-ENTRYPOINT ["/entrypoint.sh"]
-
-CMD [ "netstate", "-ntlp" ]
+CMD ["/entrypoint.sh"]
 ```
 
 ### 输出示例
@@ -101,23 +129,18 @@ CMD [ "netstate", "-ntlp" ]
 ==================================================================
       INITING ROOT HINTS FILE ...
 ==================================================================
---2020-02-07 05:01:15--  https://www.internic.net/domain/named.cache
-Resolving www.internic.net (www.internic.net)... 192.0.32.9, 2620:0:2d0:200::9
-Connecting to www.internic.net (www.internic.net)|192.0.32.9|:443... connected.
+--2020-02-07 07:58:55--  https://www.internic.net/domain/named.cache
+Resolving www.internic.net... 192.0.32.9, 2620:0:2d0:200::9
+Connecting to www.internic.net|192.0.32.9|:443... connected.
 HTTP request sent, awaiting response... 200 OK
 Length: 3315 (3.2K) [text/plain]
 Saving to: '/etc/unbound/root.hints'
 
-     0K ...                                                   100% 6.43K=0.5s
+     0K ...                                                   100% 9.98K=0.3s
 
-2020-02-07 05:01:23 (6.43 KB/s) - '/etc/unbound/root.hints' saved [3315/3315]
+2020-02-07 07:59:00 (9.98 KB/s) - '/etc/unbound/root.hints' saved [3315/3315]
 
 ----> init root hints file success!
-
-==================================================================
-      ADDING USER UNBOUND ...
-==================================================================
-----> add uesr unbound success!
 
 ==================================================================
       SET UNBOUND THREADS NUM CONF ...
@@ -218,13 +241,13 @@ forward-zone:
 ==================================================================
 Active Internet connections (only servers)
 Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
-tcp        0      0 0.0.0.0:853             0.0.0.0:*               LISTEN      40/unbound          
-tcp        0      0 0.0.0.0:853             0.0.0.0:*               LISTEN      40/unbound          
+tcp        0      0 0.0.0.0:853             0.0.0.0:*               LISTEN      33/unbound          
+tcp        0      0 0.0.0.0:853             0.0.0.0:*               LISTEN      33/unbound          
 
-; <<>> DiG 9.11.3-1ubuntu1.11-Ubuntu <<>> google.com @127.0.0.1 -p 853
+; <<>> DiG 9.14.8 <<>> google.com @127.0.0.1 -p 853
 ;; global options: +cmd
 ;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 33153
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 37376
 ;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
 
 ;; OPT PSEUDOSECTION:
@@ -233,44 +256,35 @@ tcp        0      0 0.0.0.0:853             0.0.0.0:*               LISTEN      
 ;google.com.                    IN      A
 
 ;; ANSWER SECTION:
-google.com.             75      IN      A       216.58.200.46
+google.com.             299     IN      A       172.217.160.78
 
-;; Query time: 1718 msec
+;; Query time: 1142 msec
 ;; SERVER: 127.0.0.1#853(127.0.0.1)
-;; WHEN: Fri Feb 07 05:01:25 UTC 2020
+;; WHEN: Fri Feb 07 07:59:01 UTC 2020
 ;; MSG SIZE  rcvd: 55
 
 
 ==================================================================
       CONTAINERD IP INFO
 ==================================================================
-eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
-        inet 172.17.0.2  netmask 255.255.0.0  broadcast 172.17.255.255
-        ether 02:42:ac:11:00:02  txqueuelen 0  (Ethernet)
-        RX packets 53  bytes 17031 (17.0 KB)
-        RX errors 0  dropped 0  overruns 0  frame 0
-        TX packets 28  bytes 2933 (2.9 KB)
-        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+eth0      Link encap:Ethernet  HWaddr 02:42:AC:11:00:02  
+          inet addr:172.17.0.2  Bcast:172.17.255.255  Mask:255.255.0.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:40 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:24 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:15491 (15.1 KiB)  TX bytes:2652 (2.5 KiB)
 
-lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
-        inet 127.0.0.1  netmask 255.0.0.0
-        loop  txqueuelen 1000  (Local Loopback)
-        RX packets 3  bytes 191 (191.0 B)
-        RX errors 0  dropped 0  overruns 0  frame 0
-        TX packets 3  bytes 191 (191.0 B)
-        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:3 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:3 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:191 (191.0 B)  TX bytes:191 (191.0 B)
 
 
 ==================================================================
       READY AND WAITING FOR CLIENT CONNECTIONS
-==================================================================
-^C
-==================================================================
-      TERMINATING ...
-==================================================================
-----> terminating unbound
-
-==================================================================
-      TERMINATED
 ==================================================================
 ```
